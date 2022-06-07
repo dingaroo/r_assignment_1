@@ -273,5 +273,43 @@ corr_mat
 typeof(corr_mat)
 
 library(ggplot2)
-ggplot(data = corr_mat) +
+library(reshape2)
+
+melted_corr_mat <- melt(corr_mat)
+
+ggplot(data = melted_corr_mat, aes(x=Var1, y=Var2,
+                                   fill=value)) +
   geom_tile()
+## NO CORRELATION
+
+
+########################################################
+mystats(appts$Diabetes)
+mystats(appts$Alcoholism)
+mystats(appts$HyperTension)
+mystats(appts$Handicap)
+mystats(appts$Smokes)
+mystats(appts$Handicap)
+mystats(appts$Scholarship)
+mystats(appts$Tuberculosis)
+
+
+499
+
+
+Show-up <- appts[appts$Status == "Show-Up",]
+No-Show <- appts[appts$Status == "No-Show",]
+
+mystats(appts$Status)
+
+
+
+num_appts = sapply(appts, is.numeric)
+
+
+num_col = appts[num_appts]
+names(num_col)
+
+test <- apply(num_col, 2, mystats)
+diag_stats <- t(data.frame(test))
+View(diag_stats)
