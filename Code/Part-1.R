@@ -244,8 +244,7 @@ appts %>%
 
 
 
-## Segmentin 
-g data between No-Show and Show-Up
+## Segmenting data between No-Show and Show-Up
 
 
 
@@ -265,3 +264,14 @@ mystats(appts$Age)
 mystats(appts$dayDifference)
 
 nrow(appts[appts$dateDiff > 61,])  # 4669 records above upper fence
+
+
+## Correlation matrix
+corr_mat <- round(cor(appts[,5:11]),2) 
+corr_mat
+
+typeof(corr_mat)
+
+library(ggplot2)
+ggplot(data = corr_mat) +
+  geom_tile()
