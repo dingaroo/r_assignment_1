@@ -127,28 +127,44 @@ rm(apptDifference)
 # 209269 records are of patients that showed up for their appointment
 summary(appts[appts$Status == "Show-Up",])  
 nrow(appts[appts$Status == "Show-Up",])
-# Show-up <- appts[appts$Status == "Show-Up",]
 
 # 90732 records are of patients that did NOT show up for their
 # scheduled appointment
 summary(appts[appts$Status == "No-Show",])
-nrow(appts[appts$Status == "No-Show",])
+(appts[appts$Status == "No-Show",])
 
-
-# noShow <- appts[appts$Status == "No-Show", ]
+ShowUp <- appts[appts$Status == "Show-Up",]
+noShow <- appts[appts$Status == "No-Show", ]
 
 # The ratio between NoShow and ShowUp is: 90731: 209269
-
+integer(noShow)/int(noShow)
 
 ## Investigating the computed dayDifference variable
 
 # scatter plot, Age by dayDifference
 plot(appts$Age, appts$dayDifference)
 
+## number of records with > 100 in age
+nrow(appts[appts$Age > 100,])  # 27 records
+
+
 # getting statistical data about dayDifference
 # the day difference ranges from 1 day to 398 days!! Or up to 1 year and 1 month!
-range(appts$dayDifference)  # the resulting range is 1 to 398 days
-IQR(appts$dayDifference)  # Interquartile Range is 16
+
+png("Output/ApptDifference.png")
+
+hist(appts$apptDifference, xlim = c(0, 10), ks = 50, 
+     main = "Histogram of Appointment Difference in Weeks",
+     xlab = "Difference in Weeks", ylab = "Frequency Count",
+     prob = TRUE)
+# plotting probability distribution in Red
+lines(density(appts$apptDifference), lwd = 2, col = "red")
+
+dev.off()
+
+
+range(appts$apptDifference)  # the resulting range is 1 to 398 days
+IQR(appts$apptDifference)  # Interquartile Range is 16
 # finding the upper and lower fence values of dayDifference column
 age_upper_fence <- 20 + (1.5 * IQR(appts$dayDifference))# 44
 age_upper_fence
@@ -246,13 +262,8 @@ appts %>%
 
 ## Segmenting data between No-Show and Show-Up
 
-
-
-
 showUp <- appts[appts$Status == "Show-Up",]
 summary(showUp$dayDifference)
-
-
 
 noShow <- appts[appts$Status == "No-Show", ]
 summary(noShow$dayDifference)
