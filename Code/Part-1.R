@@ -86,8 +86,9 @@ appts[is.na(appts)]   # checking for any missing data = 0
 
 ## Working with the date columns and generating a third 
 # type casting the date variables as type Date
-appts$AppointmentDate <- as.Date(appts$AppointmentDate)
+appts$AppointmentDate <- as_datetime(appts$AppointmentDate)
 appts$AppointmentRegistration <- as.Date(appts$AppointmentRegistration)
+
 
 # finding the difference in days between the date of registration and the
 # actual appointment
