@@ -9,6 +9,7 @@
 ## Import libraries
 require(ggplot2)
 require(tidyverse)
+require(caret)
 
 # prevent display of numbers in scientific notation
 options(scipen = 999)
@@ -82,6 +83,10 @@ summary(appts)  # getting a summary of all 13 features
 head(appts)  # show top 5 observations
 tail(appts)  # show bottom 5 observations
 appts[is.na(appts)]   # checking for any missing data = 0
+
+
+temp1_df <- appts[,c(appts$Gender, appts$Status)]
+
 
 
 ## Working with the date columns and generating a third 

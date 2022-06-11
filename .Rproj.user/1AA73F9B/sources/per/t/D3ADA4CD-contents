@@ -9,6 +9,7 @@
 ## Import libraries
 require(ggplot2)
 require(tidyverse)
+require(caret)
 
 # prevent display of numbers in scientific notation
 options(scipen = 999)
@@ -84,10 +85,15 @@ tail(appts)  # show bottom 5 observations
 appts[is.na(appts)]   # checking for any missing data = 0
 
 
+temp1_df <- appts[,c(appts$Gender, appts$Status)]
+
+
+
 ## Working with the date columns and generating a third 
 # type casting the date variables as type Date
-appts$AppointmentDate <- as.Date(appts$AppointmentDate)
+appts$AppointmentDate <- as_datetime(appts$AppointmentDate)
 appts$AppointmentRegistration <- as.Date(appts$AppointmentRegistration)
+
 
 # finding the difference in days between the date of registration and the
 # actual appointment
@@ -127,28 +133,44 @@ rm(apptDifference)
 # 209269 records are of patients that showed up for their appointment
 summary(appts[appts$Status == "Show-Up",])  
 nrow(appts[appts$Status == "Show-Up",])
-# Show-up <- appts[appts$Status == "Show-Up",]
 
 # 90732 records are of patients that did NOT show up for their
 # scheduled appointment
 summary(appts[appts$Status == "No-Show",])
-nrow(appts[appts$Status == "No-Show",])
+(appts[appts$Status == "No-Show",])
 
-
-# noShow <- appts[appts$Status == "No-Show", ]
+ShowUp <- appts[appts$Status == "Show-Up",]
+noShow <- appts[appts$Status == "No-Show", ]
 
 # The ratio between NoShow and ShowUp is: 90731: 209269
-
+integer(noShow)/int(noShow)
 
 ## Investigating the computed dayDifference variable
 
 # scatter plot, Age by dayDifference
 plot(appts$Age, appts$dayDifference)
 
+## number of records with > 100 in age
+nrow(appts[appts$Age > 100,])  # 27 records
+
+
 # getting statistical data about dayDifference
 # the day difference ranges from 1 day to 398 days!! Or up to 1 year and 1 month!
-range(appts$dayDifference)  # the resulting range is 1 to 398 days
-IQR(appts$dayDifference)  # Interquartile Range is 16
+
+png("Output/ApptDifference.png")
+
+hist(appts$apptDifference, xlim = c(0, 10), ks = 50, 
+     main = "Histogram of Appointment Difference in Weeks",
+     xlab = "Difference in Weeks", ylab = "Frequency Count",
+     prob = TRUE)
+# plotting probability distribution in Red
+lines(density(appts$apptDifference), lwd = 2, col = "red")
+
+dev.off()
+
+
+range(appts$apptDifference)  # the resulting range is 1 to 398 days
+IQR(appts$apptDifference)  # Interquartile Range is 16
 # finding the upper and lower fence values of dayDifference column
 age_upper_fence <- 20 + (1.5 * IQR(appts$dayDifference))# 44
 age_upper_fence
@@ -244,16 +266,10 @@ appts %>%
 
 
 
-## Segmentin 
-g data between No-Show and Show-Up
-
-
-
+## Segmenting data between No-Show and Show-Up
 
 showUp <- appts[appts$Status == "Show-Up",]
 summary(showUp$dayDifference)
-
-
 
 noShow <- appts[appts$Status == "No-Show", ]
 summary(noShow$dayDifference)
@@ -265,3 +281,52 @@ mystats(appts$Age)
 mystats(appts$dayDifference)
 
 nrow(appts[appts$dateDiff > 61,])  # 4669 records above upper fence
+
+
+## Correlation matrix
+corr_mat <- round(cor(appts[,5:11]),2) 
+corr_mat
+
+typeof(corr_mat)
+
+library(ggplot2)
+library(reshape2)
+
+melted_corr_mat <- melt(corr_mat)
+
+ggplot(data = melted_corr_mat, aes(x=Var1, y=Var2,
+                                   fill=value)) +
+  geom_tile()
+## NO CORRELATION
+
+
+########################################################
+mystats(appts$Diabetes)
+mystats(appts$Alcoholism)
+mystats(appts$HyperTension)
+mystats(appts$Handicap)
+mystats(appts$Smokes)
+mystats(appts$Handicap)
+mystats(appts$Scholarship)
+mystats(appts$Tuberculosis)
+
+
+499
+
+
+Show-up <- appts[appts$Status == "Show-Up",]
+No-Show <- appts[appts$Status == "No-Show",]
+
+mystats(appts$Status)
+
+
+
+num_appts = sapply(appts, is.numeric)
+
+
+num_col = appts[num_appts]
+names(num_col)
+
+test <- apply(num_col, 2, mystats)
+diag_stats <- t(data.frame(test))
+View(diag_stats)
