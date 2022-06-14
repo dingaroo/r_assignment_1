@@ -6,10 +6,27 @@
 ###
 ### As this problem is a classification problem, the target variable
 
+# Data Type
+# Age - discreet - Age of patient
+# Gender - categorical - Male or Female
+# Appointment Registration - date - date of appointment registration
+# Appointment Date - date - date of actual appointment
+# Diabetes - binary - True / False
+# Alcoholism - binary - True / False
+# HyperTension - binary - True / False
+# Handicap - binary - True / False
+# Smokes - binary - True / False
+# Scholarship - binary - True / False
+# Tuberculosis - binary - True / False
+# SMS Reminder - binary - True / False
+# Status - Categorical - Show or no-show
+
+
 ## Import libraries
 require(ggplot2)
 require(tidyverse)
 require(caret)
+require(stats)
 
 # prevent display of numbers in scientific notation
 options(scipen = 999)
@@ -85,8 +102,52 @@ tail(appts)  # show bottom 5 observations
 appts[is.na(appts)]   # checking for any missing data = 0
 
 
-temp1_df <- appts[,c(appts$Gender, appts$Status)]
+# *****************************************************************
+# *                   verify binary data
+# *****************************************************************
+mystats(appts$Diabetes)
+mystats(appts$Alcoholism)
+mystats(appts$HyperTension)
+mystats(appts$Handicap)
+mystats(appts$Smokes)
+mystats(appts$Handicap)
+mystats(appts$Scholarship)
+mystats(appts$Tuberculosis)
+mystats(appts$Sms_Reminder)
 
+
+table(appts$Sms_Reminder ~ appts$Status)
+
+# pie chart of sms reminders sent
+pie(table(appts$Sms_Reminder) * 100 / nrow(appts),
+    col = rainbow(12),
+    radius = 1)
+
+xtabs(~ Status + Sms_Reminder, data = appts)
+
+
+nrow(appts[appts$Handicap > 4,])   # 499 records had handicap value not set to 
+499
+# *****************************************************************
+b <- appts
+b$Handicap[appts$Handicap > 1] = 1
+mystats(b$Handicap)
+
+
+
+# temp1_df <- appts[,(appts$Gender, appts$Status)]
+#subset(appts, keep = c("Gender","Status"))
+status_by_gender <- table(appts[, c(2, 13)])
+# barplot(Status ~ Gender, data = appts)
+a <- ggplot(appts, aes(Status))
+a + geom_bar(position = "fill") +
+  labs(x = "Appointment Status", y = "Count of Status", title = "Bar Graph of Status") +
+  theme_classic()
+
+
+Show_Up <- appts[appts$Status == "Show-Up",]
+ggplot(Show_Up, aes(AppointmentDate, Status)) +
+  geom_area()
 
 
 ## Working with the date columns and generating a third 
@@ -311,6 +372,7 @@ mystats(appts$Scholarship)
 mystats(appts$Tuberculosis)
 
 
+nrow(appts[appts$Handicap > 4,])
 499
 
 
