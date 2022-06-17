@@ -24,6 +24,7 @@
 
 ## Import libraries
 require(ggplot2)
+require(ggmosaic)
 require(tidyverse)
 require(caret)
 require(stats)
@@ -103,57 +104,76 @@ appts[is.na(appts)]   # checking for any missing data = 0
 
 
 # *****************************************************************
-# *                   verify binary data
+# *                   verify binary data 
+# * Verify min and max values - should have min of 0 and max of 1
 # *****************************************************************
 mystats(appts$Diabetes)
 mystats(appts$Alcoholism)
 mystats(appts$HyperTension)
-mystats(appts$Handicap)
+mystats(appts$Handicap)  # has a max of 4
 mystats(appts$Smokes)
-mystats(appts$Handicap)
-mystats(appts$Scholarship)
-mystats(appts$Tuberculosis)
-mystats(appts$Sms_Reminder)
+mystats(appts$Tuberculosis)b
+mystats(appts$Sms_Reminder)  # has a max of 2
+# ****************************************************************
+# * SMS Reminder can have values of 0, 1 or 2, indicating number of
+# * times SMS was sent to the patient
+# *****************************************************************
 
 
-table(appts$Sms_Reminder ~ appts$Status)
+# *****************************************************************
+# 
+pie(table(appts$Status) * 100 / nrow(appts),
+    radius = 1)
+
+prop.table(table(appts$Status))
 
 # pie chart of sms reminders sent
 pie(table(appts$Sms_Reminder) * 100 / nrow(appts),
     col = rainbow(12),
     radius = 1)
 
-xtabs(~ Status + Sms_Reminder, data = appts)
+# Breakdown of those who didn't turn up against the number of
+# SMS reminders sent to patients
+prop.table(xtabs(~ Status + Sms_Reminder, data = appts))
+# The percentage of patients who turned up with 1 phone call is 39.7%!
+# At least 29.9% of patients who received no reminder turned up, 
+# while 30% did not turn up. Maybe if more patients received an SMS reminder
+# or two, more patients would not miss their appointments.
 
 
-nrow(appts[appts$Handicap > 4,])   # 499 records had handicap value not set to 
-499
+# identify number of records with more than 1 type of handicaps
+nrow(appts[appts$Handicap > 1,])   # 499 records had handicap value not set to 
+prop.table(table(appts$Handicap))
+
+
+
+# ****************************************************************
+# * Normalize the data for Handicaps to just 1, so it is either yes or no
+# ****************************************************************
+appts$Handicap[appts$Handicap > 1] = 1
+mystats(appts$Handicap)
+
+
 # *****************************************************************
-b <- appts
-b$Handicap[appts$Handicap > 1] = 1
-mystats(b$Handicap)
+# * Breakdown of those who turned up or not, by gender
+# *****************************************************************
+status_by_gender <- prop.table(table(appts[, c(2, 13)]))
+status_by_gender
+
+plot(status_by_gender)
 
 
 
-# temp1_df <- appts[,(appts$Gender, appts$Status)]
-#subset(appts, keep = c("Gender","Status"))
-status_by_gender <- table(appts[, c(2, 13)])
-# barplot(Status ~ Gender, data = appts)
-a <- ggplot(appts, aes(Status))
-a + geom_bar(position = "fill") +
-  labs(x = "Appointment Status", y = "Count of Status", title = "Bar Graph of Status") +
-  theme_classic()
 
+# ******************************************************************
+# * Creating Show_Up and No_Show subsets of data
+# ******************************************************************
+Show_Up <- appts[appts$Status == "Show-Up", ]
+No_Show <- appts[appts$Status == "No-Show", ]
 
-Show_Up <- appts[appts$Status == "Show-Up",]
-ggplot(Show_Up, aes(AppointmentDate, Status)) +
-  geom_area()
-
-
-## Working with the date columns and generating a third 
-# type casting the date variables as type Date
-appts$AppointmentDate <- as_datetime(appts$AppointmentDate)
-appts$AppointmentRegistration <- as.Date(appts$AppointmentRegistration)
+#ggplot(appts, aes(Status)) +  
+#  geom_col(main = "Bar Plot of patients that showed up and their gender breakdown")
+  
 
 
 # finding the difference in days between the date of registration and the
@@ -181,6 +201,7 @@ mystats(diff_in_months)
 
 ## Combining the appts data to the difference in weeks
 apptDifference <- diff_in_weeks
+## Removing redundant calculated variables
 rm(diff_in_days)
 rm(diff_in_weeks)
 rm(diff_in_months)
@@ -204,21 +225,42 @@ ShowUp <- appts[appts$Status == "Show-Up",]
 noShow <- appts[appts$Status == "No-Show", ]
 
 # The ratio between NoShow and ShowUp is: 90731: 209269
-integer(noShow)/int(noShow)
+nrow(No_Show) / nrow(appts)
+nrow(Show_Up) / nrow(appts)
 
-## Investigating the computed dayDifference variable
+## Investigating the computed apptDifference variable
 
-# scatter plot, Age by dayDifference
-plot(appts$Age, appts$dayDifference)
+#histogram of apptDifference
+ggplot(appts, aes(apptDifference)) +
+  geom_histogram(binwidth = 1) 
+mystats(appts$apptDifference)  
+# based on the mystats result, the Upper Level value of this variable is 8.7
+# or 9, when rounded up
+nrow(appts[appts$apptDifference > 8.7, ])  #4908 records are considered outliers 
+# for the apptDifference variable
+
+## The data population has Female patients 
+ggplot(appts, aes(y = Status, x = Gender, fill = Status)) +
+  geom_bar(stat = "identity") + 
+  labs(y = "Count of Status", title = "Breakdown of Gender by Status") +
+  theme_classic()
+
+
 
 ## number of records with > 100 in age
-nrow(appts[appts$Age > 100,])  # 27 records
+nrow(appts[appts$Age > 100, ])  # 27 records
+nrow(appts[appts$Age < 1, ])  # 10332 records
+ggplot(appts, aes(Age, fill = Gender)) +
+  geom_histogram(binwidth = 1) +
+  labs(y = "Count of Population",
+       title = "Histogram of Age by Gender") +
+  theme_classic()
 
 
 # getting statistical data about dayDifference
 # the day difference ranges from 1 day to 398 days!! Or up to 1 year and 1 month!
 
-png("Output/ApptDifference.png")
+# png("Output/ApptDifference.png")
 
 hist(appts$apptDifference, xlim = c(0, 10), ks = 50, 
      main = "Histogram of Appointment Difference in Weeks",
@@ -227,7 +269,7 @@ hist(appts$apptDifference, xlim = c(0, 10), ks = 50,
 # plotting probability distribution in Red
 lines(density(appts$apptDifference), lwd = 2, col = "red")
 
-dev.off()
+# dev.off()
 
 
 range(appts$apptDifference)  # the resulting range is 1 to 398 days
