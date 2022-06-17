@@ -28,6 +28,7 @@ require(ggmosaic)
 require(tidyverse)
 require(caret)
 require(stats)
+require(dplyr)
 
 # prevent display of numbers in scientific notation
 options(scipen = 999)
@@ -72,9 +73,9 @@ mystats <- function(x) {
       # p95 = p95,
       # p99 = p99,
       max = max,
-      UC = UC,
-      LC = LC
-    )
+      LC = LC,
+      UC = UC
+      )
   )
 }
 
@@ -112,7 +113,7 @@ mystats(appts$Alcoholism)
 mystats(appts$HyperTension)
 mystats(appts$Handicap)  # has a max of 4
 mystats(appts$Smokes)
-mystats(appts$Tuberculosis)b
+mystats(appts$Tuberculosis)
 mystats(appts$Sms_Reminder)  # has a max of 2
 # ****************************************************************
 # * SMS Reminder can have values of 0, 1 or 2, indicating number of
