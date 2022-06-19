@@ -6,6 +6,15 @@
 ###
 ### As this problem is a classification problem, the target variable
 
+########################################################################
+### To do
+###
+### 1 - Create a new feature/variable "HourOfTheDay" which will indicate the
+###     hour of the day at which the appointment was booked
+
+
+
+
 # Data Type
 # Age - discreet - Age of patient
 # Gender - categorical - Male or Female
@@ -30,6 +39,7 @@ require(caret)
 require(stats)
 require(dplyr)
 
+
 # prevent display of numbers in scientific notation
 options(scipen = 999)
 
@@ -38,6 +48,7 @@ options(scipen = 999)
 mystats <- function(x) {
   nmiss <- sum(is.na(x))
   a <- x[!is.na(x)]
+  med <- median(x)
   m <- mean(a)
   n <- length(a)
   s <- sd(a)
@@ -61,6 +72,7 @@ mystats <- function(x) {
       nmiss = nmiss,
       outlier_flag = outlier_flag,
       mean = m,
+      med = med,
       stdev = s,
       min = min,
       # p1 = p1,
@@ -78,6 +90,7 @@ mystats <- function(x) {
       )
   )
 }
+
 
 
 
@@ -108,6 +121,64 @@ appts[is.na(appts)]   # checking for any missing data = 0
 # *                   verify binary data 
 # * Verify min and max values - should have min of 0 and max of 1
 # *****************************************************************
+
+## Status
+print("-----------------------------------")
+print("Number of Patients who Showed Up versus who Missed:")
+print(summary(appts$Status))
+table(appts$Status)
+# display a pie chart of the Status feature
+z <- prop.table(table(appts$Status)) * 100
+pie(prop.table(table(appts$Status)) * 100, 
+    labels = paste0(appts$Status, ': ', (format(round(z, 2), nsmall = 2)), '%'),
+    main = "Breakdown of Appointment Status",
+    col = rainbow(5),
+    border = TRUE
+    )
+
+# SMS_Reminders
+print("-----------------------------------")
+print("Breakdown of SMS Reminders")
+print(mystats(appts$Sms_Reminder))
+print(table(appts$Sms_Reminder))
+## Interestingly enough, the median "med" of this variable is at 1, while the
+## mean is at 0.57417
+# pie chart of sms reminders sent
+z <- prop.table(table(appts$Sms_Reminder)) * 100
+barchart(z,
+         #labels = z,
+         labels = paste0(unique(appts$Sms_Reminder), ': ', (format(round(z, 2), nsmall = 2)), '%'),
+         # labels = paste0(appts$Sms_Reminder, ': ', (format(round(z, 2), nsmall = 2)), '%'),
+         main = "Breakdown of SMS Reminders Sent",
+         col = rainbow(5), 
+         xlab = "Frequency in %",
+         ylab = "Number of SMS Messages Sent"
+         )
+
+BP = barplot(z, 
+             main = "Breakdown of SMS Reminders Sent", 
+             ylab = "%", 
+             ylim = c(0, 100), 
+             las = 1,  
+             col = SEQUENTIAL)
+text(BP, 
+     label = paste0(unique(appts$Sms_Reminder), ': ', (format(round(z, 2), nsmall = 2)), '%'), 
+     # label = z,
+     pos = 3, 
+     cex = 0.8)
+
+
+require(plotly)
+
+
+
+
+counts <- prop.table(table(appts$Sms_Reminder)) * 100
+b <- barplot(counts, main= "number of yes/no", xlab = "response", ylab = "number of occurrences", ylim=c(0,4),
+text(x= b, y=counts,pos = 3, label = counts, cex = 0.8, col = "red"))
+
+
+
 mystats(appts$Diabetes)
 mystats(appts$Alcoholism)
 mystats(appts$HyperTension)
@@ -123,16 +194,6 @@ mystats(appts$Sms_Reminder)  # has a max of 2
 
 # *****************************************************************
 # 
-pie(table(appts$Status) * 100 / nrow(appts),
-    radius = 1)
-
-prop.table(table(appts$Status))
-
-# pie chart of sms reminders sent
-pie(table(appts$Sms_Reminder) * 100 / nrow(appts),
-    col = rainbow(12),
-    radius = 1)
-
 # Breakdown of those who didn't turn up against the number of
 # SMS reminders sent to patients
 prop.table(xtabs(~ Status + Sms_Reminder, data = appts))
